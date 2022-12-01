@@ -220,7 +220,7 @@ class FollowViewsTest(TestCase):
     def test_follow(self):
         """Проверка подписки на авторов."""
         follow_count = Follow.objects.count()
-        response = self.follow_client.get(
+        response = self.follow_client.post(
             reverse(
                 'posts:profile_follow',
                 kwargs={'username': self.user_follow}
@@ -234,10 +234,30 @@ class FollowViewsTest(TestCase):
                 kwargs={'username': self.user_follow}
             )
         )
-        self.assertTrue(
-            Follow.objects.filter(
-                user=self.user_author, author=self.user_follow
-            ).exists()
+        latest_follow = Follow.objects.latest('id')
+        self.assertEqual(latest_follow.user_id, self.user_author.id)
+        self.assertEqual(latest_follow.author_id, self.user_follow.id)
+
+    def test_unfollow(self):
+        """Проверка отписки от авторов."""
+        Follow.objects.create(
+            user=self.user_author,
+            author=self.user_follow
+        )
+        follow_count = Follow.objects.count()
+        response = self.follow_client.post(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.user_follow}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), follow_count - 1)
+        self.assertRedirects(
+            response,
+            reverse(
+                'posts:profile',
+                kwargs={'username': self.user_follow}
+            )
         )
 
     def test_posts_on_followers(self):

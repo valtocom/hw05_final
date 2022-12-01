@@ -78,7 +78,6 @@ class PostCreateFormTests(TestCase):
         """Комментировать посты может только авторизованный пользователь."""
         form_data = {
             'text': 'Текст для тестирования комментария',
-            'post': self.post.id
         }
         response = self.authorized_client.post(
             reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
@@ -88,5 +87,4 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         latest_comment = Comment.objects.latest('created')
         self.assertEqual(latest_comment.text, form_data['text'])
-        self.assertEqual(latest_comment.post.id, form_data['post'])
         self.assertEqual(latest_comment.author.username, self.user.username)
